@@ -6,6 +6,10 @@ import logging
 lognames = ["rako-04-04-22.log","rako-03-04-22.log"]
 lognames = sorted(lognames)
 
+prev_room = ""
+prev_channel = ""
+prev_scene = ""
+
 def set_scene( room, channel, scene):
     BRIDGE_IP = "192.168.1.34"
     PORT = "9761"
@@ -81,30 +85,32 @@ def readlogs():
                     channel = splt[7].split("=")[1]
 
                     scene = splt[8].split("=")[1]
+                    if room != prev_room or channel != prev_channel or scene != prev_scene:
+                        set_scene(room,channel,scene)    
+                        print("send")
+                                            
+                        logger = logging.getLogger()
+                        logger.setLevel(logging.DEBUG)
 
-                    #set_scene(room,channel,scene)    
+                        formatter = logging.Formatter('%(asctime)s - %(message)s')
 
-                                        
-                    logger = logging.getLogger()
-                    logger.setLevel(logging.DEBUG)
+                        fh = logging.FileHandler('holiday_debug_log.txt')
+                        fh.setLevel(logging.DEBUG)
+                        fh.setFormatter(formatter)
+                        logger.addHandler(fh)
 
-                    formatter = logging.Formatter('%(asctime)s - %(message)s')
+                        sh = logging.StreamHandler()
+                        sh.setLevel(logging.DEBUG)
+                        sh.setFormatter(formatter)
+                        logger.addHandler(sh)
 
-                    fh = logging.FileHandler('holiday_debug_log.txt')
-                    fh.setLevel(logging.DEBUG)
-                    fh.setFormatter(formatter)
-                    logger.addHandler(fh)
+                        logger.debug("log_time=%s room=%s channel=%s scene=%s" %(tod, room,channel,scene))
 
-                    sh = logging.StreamHandler()
-                    sh.setLevel(logging.DEBUG)
-                    sh.setFormatter(formatter)
-                    logger.addHandler(sh)
-
-                    logger.debug("log_time=%s room=%s channel=%s scene=%s" %(tod, room,channel,scene))
-
-
-                    send = False
-            time.sleep(0.5)
+                        prev_room = room
+                        prev_channel = channel
+                        prev_scene = scene
+                        send = False
+      
         
 while True:
     readlogs()
